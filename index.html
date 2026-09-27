@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="ta">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>டிராக்டர் வேலை பதிவு</title>
+<link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🚜</text></svg>">
+<style>
+:root{
+  --bg:#f4f1ea; --card:#ffffff; --ink:#2b2620; --sub:#7a7267;
+  --green:#2f8f4e; --green-d:#1f6a38; --red:#c94a3d; --red-d:#a13a30;
+  --accent:#d98e2e; --line:#e6e0d4; --shadow:0 4px 14px rgba(0,0,0,.10);
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1c1a17; --card:#2a2622; --ink:#f2ede4; --sub:#a89f90;
+    --line:#3a352e; --shadow:0 4px 14px rgba(0,0,0,.4);
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1c1a17; --card:#2a2622; --ink:#f2ede4; --sub:#a89f90;
+  --line:#3a352e; --shadow:0 4px 14px rgba(0,0,0,.4);
+}
+html{scroll-padding-top:env(safe-area-inset-top,0px); height:100%;}
+*{box-sizing:border-box;}
+body{
+  margin:0; height:100%; background:var(--bg); color:var(--ink);
+  font-family:-apple-system,"Noto Sans Tamil",system-ui,sans-serif;
+  display:flex; flex-direction:column; overflow-x:hidden;
+}
+#app{flex:1; overflow-y:auto; padding:16px; padding-bottom:96px;}
+h1{font-size:19px; text-align:center; margin:4px 0 18px;}
+.bar{
+  position:fixed; bottom:0; left:0; right:0; display:flex;
+  background:var(--card); box-shadow:0 -4px 14px rgba(0,0,0,.12); z-index:5;
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+.bar button{
+  flex:1; border:0; background:none; color:var(--sub); padding:12px 0 8px;
+  display:flex; flex-direction:column; align-items:center; gap:3px; font-size:22px;
+}
+.bar button.active{color:var(--accent);}
+.bar svg{width:26px; height:26px;}
+.overlay{
+  position:fixed; inset:0; background:var(--bg); z-index:20;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; padding:24px;
+  padding-top:calc(24px + env(safe-area-inset-top,0px));
+}
+.close{position:absolute; top:calc(16px + env(safe-area-inset-top,0px)); right:16px; font-size:30px; background:none; border:0; color:var(--sub);}
+.bigphoto{width:150px; height:150px; border-radius:26px; object-fit:cover; box-shadow:var(--shadow); background:var(--line);}
+.bigph{width:150px; height:150px; border-radius:26px; background:var(--accent); color:#fff; font-size:60px; display:flex; align-items:center; justify-content:center;}
+.clock{font-size:44px; font-weight:700; margin:18px 0; letter-spacing:1px;}
+.count{font-size:70px; font-weight:800; margin:10px 0; color:var(--accent);}
+.roundbtn{
+  width:150px; height:150px; border-radius:50%; border:0; color:#fff; font-size:44px;
+  box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center;
+}
+.stopbtn{background:var(--red);}
+.stopbtn:active{background:var(--red-d);}
+.card{background:var(--card); border-radius:16px; box-shadow:var(--shadow); padding:14px; margin-bottom:12px;}
+.card .row{display:flex; align-items:center; gap:10px;}
+.card img{width:52px; height:52px; border-radius:14px; object-fit:cover; background:var(--line);}
+.arrow{color:var(--sub); font-size:18px;}
+.card .dur{font-size:22px; font-weight:700; margin-top:8px;}
+.card .times{font-size:13px; color:var(--sub); margin-top:2px;}
+.card .txt{font-size:14px; color:var(--ink); margin-top:6px; font-style:italic;}
+.card .actions{display:flex; justify-content:flex-end; gap:8px; margin-top:8px;}
+.iconbtn{background:var(--line); border:0; border-radius:50%; width:38px; height:38px; display:flex; align-items:center; justify-content:center; color:var(--ink);}
+.iconbtn svg{width:18px; height:18px;}
+.step{width:100%; display:flex; flex-direction:column; align-items:center; gap:14px;}
+.actionbtn{
+  width:100%; max-width:280px; padding:18px; border-radius:18px; border:0; font-size:21px;
+  color:#fff; background:var(--accent); box-shadow:var(--shadow); display:flex; align-items:center; justify-content:center; gap:10px;
+}
+.actionbtn.green{background:var(--green);}
+.actionbtn svg{width:26px; height:26px;}
+.hint{color:var(--sub); font-size:14px; text-align:center;}
+.empty{text-align:center; color:var(--sub); margin-top:60px; font-size:16px;}
+.folderTabs{display:flex; gap:8px; margin:0 0 14px;}
+.folderTab{flex:1; border:0; border-radius:12px; padding:12px 10px; background:var(--line); color:var(--ink); font-weight:700; font-size:15px;}
+.folderTab.active{background:var(--accent); color:#fff; box-shadow:var(--shadow);}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<div class="bar">
+  <button id="navHome"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>வீடு</button>
+  <button id="navHist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l4 2"/></svg>பதிவு</button>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const app = $('#app');
+const LIVE_KEY = 'tractor_live_logs';
+const DELETED_KEY = 'tractor_deleted_logs';
+let entries = [], deletedEntries = [], draft = null, view = 'home', tickHandle = null, historyMode = 'live';
+
+try{ entries = JSON.parse(localStorage.getItem(LIVE_KEY)||'[]'); }catch(e){ entries = []; }
+try{ deletedEntries = JSON.parse(localStorage.getItem(DELETED_KEY)||'[]'); }catch(e){ deletedEntries = []; }
+try{ draft = JSON.parse(localStorage.getItem('tl_draft')||'null'); }catch(e){ draft = null; }
+
+function saveEntries(){ try{ localStorage.setItem(LIVE_KEY, JSON.stringify(entries)); }catch(e){} }
+function saveDeletedEntries(){ try{ localStorage.setItem(DELETED_KEY, JSON.stringify(deletedEntries)); }catch(e){} }
+function saveDraft(){ try{ localStorage.setItem('tl_draft', draft?JSON.stringify(draft):''); }catch(e){} }
+
+let taVoices = [];
+function loadVoices(){
+  try{ taVoices = (speechSynthesis.getVoices()||[]).filter(v=>v.lang && v.lang.toLowerCase().startsWith('ta')); }catch(e){}
+}
+loadVoices();
+try{ speechSynthesis.onvoiceschanged = loadVoices; }catch(e){}
+
+function speak(text){
+  // Voice prompts are disabled. Only Tamil guide text remains on screen.
+}
+function toTamilDurationText(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const h = Math.floor(total/3600);
+  const m = Math.floor((total%3600)/60);
+  const s = total%60;
+  const parts = [];
+  if(h > 0){ parts.push(`${h} மணி`); }
+  if(m > 0){ parts.push(`${m} நிமிடம்`); }
+  if(s > 0 || parts.length === 0){ parts.push(`${s} விநாடிகள்`); }
+  return parts.join(', ');
+}
+function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+function showToast(emoji, sub){
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;z-index:60;pointer-events:none;background:rgba(0,0,0,.15)';
+  t.innerHTML = `<div style="font-size:100px;filter:drop-shadow(0 4px 10px rgba(0,0,0,.3))">${emoji}</div>${sub?`<div style="font-size:34px;font-weight:800;color:#fff;text-shadow:0 2px 6px rgba(0,0,0,.5)">${sub}</div>`:''}`;
+  document.body.appendChild(t);
+  setTimeout(()=>{ t.style.transition='opacity .4s'; t.style.opacity='0'; setTimeout(()=>t.remove(),400); }, 1300);
+}
+function playClip(dataUrl){ if(!dataUrl) return; try{ new Audio(dataUrl).play(); }catch(e){} }
+function fmtDur(ms){
+  const total = Math.max(0, Math.floor(ms/1000));
+  const h = Math.floor(total/3600);
+  const m = Math.floor((total%3600)/60);
+  const s = total%60;
+  return String(h).padStart(2,'0')+':'+String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+}
+function fmtTime(ts){
+  const d = new Date(ts);
+  return String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+function fmtDate(ts){
+  const d = new Date(ts);
+  return String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0')+'/'+d.getFullYear();
+}
+
+function render(){
+  if(tickHandle){ clearInterval(tickHandle); tickHandle = null; }
+  if(view==='home') return renderHome();
+  if(view==='active') return renderActive();
+  if(view==='history') return renderHistory();
+}
+
+function renderHome(){
+  $('#navHome').classList.add('active'); $('#navHist').classList.remove('active');
+  if(draft && draft.startTime && !draft.stopTime){ view='active'; return renderActive(); }
+  app.innerHTML = `
+    <h1>🚜 டிராக்டர் வேலை பதிவு</h1>
+    <div class="step" style="margin-top:30px">
+      <button class="actionbtn green" id="startBtn" style="max-width:260px;padding:26px">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 3l14 9-14 9V3z"/></svg>
+        புதிய வேலை தொடங்கு
+      </button>
+      <p class="hint">1️⃣ புகைப்படம் → 🎙️ குரல் குறிப்பு → ⏱️ வேலை → 2️⃣ புகைப்படம்</p>
+    </div>`;
+  $('#startBtn').onclick = ()=>{
+    vibrate(40);
+    const startTime = Date.now();
+    openCamera(photoDataUrl=>{
+      draft = {startPhoto:photoDataUrl, startTime:startTime, voiceAudio:null, voiceText:'', stopPhoto:null, stopTime:null};
+      saveDraft();
+      vibrate(120); showToast('✅','தொடங்கியது');
+      startVoiceCapture();
+    });
+  };
+}
+
+function startVoiceCapture(){
+  const div = document.createElement('div');
+  div.className = 'overlay'; div.style.zIndex = 25;
+  div.innerHTML = `
+    <div class="step">
+      <div class="bigph">🎙️</div>
+      <div class="count" id="cnt">6</div>
+      <p class="hint" id="recStatus">குரல் பதிவு தானாகவே தொடங்குகிறது. நில உரிமையாளர் பெயரை சொல்லுங்கள்.</p>
+      <button class="actionbtn" id="skipVoice" style="background:var(--line);color:var(--ink);max-width:200px">தவிர்க்கவும்</button>
+    </div>`;
+  document.body.appendChild(div);
+  let recording = false, countdownH = null;
+
+  div.querySelector('#skipVoice').onclick = ()=>{ div.remove(); goActive(); };
+
+  function startAutoRecording(){
+    if(recording) return;
+    if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ warnToast('மைக் கிடைக்கவில்லை'); return; }
+    recording = true;
+    div.querySelector('#recStatus').textContent = '🔴 பதிவு செய்யப்படுகிறது...';
+    navigator.mediaDevices.getUserMedia({audio:{
+      echoCancellation:true, noiseSuppression:true, autoGainControl:true, channelCount:1
+    }}).then(stream=>{
+      let mimeType = '';
+      ['audio/webm;codecs=opus','audio/webm','audio/mp4'].forEach(t=>{
+        if(!mimeType && window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) mimeType = t;
+      });
+      const rec = mimeType ? new MediaRecorder(stream,{mimeType, audioBitsPerSecond:128000}) : new MediaRecorder(stream);
+      const chunks = [];
+      rec.ondataavailable = e=>chunks.push(e.data);
+
+      let transcript = '', interim = '', stopping = false;
+      const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+      let recog = null;
+      function stopRecording(){
+        if(stopping) return;
+        stopping = true;
+        clearInterval(countdownH);
+        if(rec && rec.state !== 'inactive') rec.stop();
+        if(recog){ try{ recog.stop(); }catch(e){} }
+        stream.getTracks().forEach(t=>t.stop());
+      }
+      function startRecog(){
+        if(!SR) return;
+        recog = new SR();
+        recog.lang = 'ta-IN'; recog.interimResults = true; recog.continuous = true; recog.maxAlternatives = 1;
+        recog.onresult = ev=>{
+          for(let i=ev.resultIndex;i<ev.results.length;i++){
+            if(ev.results[i].isFinal) transcript += ev.results[i][0].transcript;
+            else interim = ev.results[i][0].transcript;
+          }
+        };
+        recog.onerror = ()=>{};
+        recog.onend = ()=>{ if(!stopping && rec.state==='recording'){ try{ recog.start(); }catch(e){} } };
+        try{ recog.start(); }catch(e){}
+      }
+      startRecog();
+
+      let secs = 6;
+      const cntEl = div.querySelector('#cnt');
+      if(cntEl) cntEl.textContent = secs;
+      countdownH = setInterval(()=>{
+        secs--;
+        if(cntEl) cntEl.textContent = Math.max(0, secs);
+        if(secs <= 0){ stopRecording(); }
+      }, 1000);
+
+      rec.onstop = ()=>{
+        clearInterval(countdownH);
+        if(recog){ try{ recog.stop(); }catch(e){} }
+        const blob = new Blob(chunks, {type: mimeType||'audio/webm'});
+        const reader = new FileReader();
+        reader.onload = ()=>{
+          draft.voiceAudio = reader.result;
+          draft.voiceText = (transcript.trim() || interim.trim() || 'குரல் பதிவு செய்யப்பட்டது');
+          saveDraft();
+          div.remove();
+          goActive();
+        };
+        reader.readAsDataURL(blob);
+      };
+      rec.start();
+    }).catch(()=>{ warnToast('மைக் அனுமதி தேவை. பிரௌசர் அமைப்புகளில் அனுமதி கொடுக்கவும்.'); recording=false; });
+  }
+
+  setTimeout(startAutoRecording, 200);
+}
+
+function goActive(){ view='active'; render(); }
+
+function renderActive(){
+  if(!draft){ view='home'; return renderHome(); }
+  app.innerHTML = `
+    <div class="step" style="margin-top:16px">
+      <img class="bigphoto" src="${draft.startPhoto}">
+      ${draft.voiceAudio?`<button class="iconbtn" id="playTag" style="width:44px;height:44px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4z"/></svg></button>`:''}
+      ${draft.voiceText?`<p class="hint">🗣️ "${draft.voiceText}"</p>`:''}
+      <div class="clock" id="clockEl">00:00</div>
+      <button class="roundbtn stopbtn" id="stopBtn">📸</button>
+      <p class="hint">வேலை முடிந்ததும், சிவப்பு பொத்தானை தட்டி முடிவுப் புகைப்படம் எடுக்கவும்</p>
+    </div>`;
+  const tick = ()=>{ $('#clockEl').textContent = fmtDur(Date.now()-draft.startTime); };
+  tick(); tickHandle = setInterval(tick, 1000);
+  if(draft.voiceAudio) $('#playTag').onclick = ()=>playClip(draft.voiceAudio);
+  $('#stopBtn').onclick = ()=>openCamera(photoDataUrl=>{
+    draft.stopPhoto = photoDataUrl;
+    draft.stopTime = Date.now();
+    const entry = {
+      id: Date.now(),
+      startPhoto: draft.startPhoto, startTime: draft.startTime,
+      voiceAudio: draft.voiceAudio, voiceText: draft.voiceText,
+      stopPhoto: draft.stopPhoto, stopTime: draft.stopTime,
+      duration: draft.stopTime - draft.startTime
+    };
+    entries.push(entry);
+    saveEntries();
+    draft = null; saveDraft();
+    vibrate([100,80,100]); showToast('🏁', fmtDur(entry.duration));
+    view='home'; render();
+  });
+}
+
+function warnToast(msg){
+  vibrate(300);
+  const t = document.createElement('div');
+  t.style.cssText = 'position:fixed;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;z-index:60;background:rgba(0,0,0,.55);padding:24px;text-align:center';
+  t.innerHTML = `<div style="font-size:70px">⚠️</div><div style="font-size:20px;font-weight:700;color:#fff;max-width:280px">${msg}</div><button id="warnClose" style="margin-top:10px;padding:12px 28px;border-radius:14px;border:0;font-size:18px;background:#fff;color:#222">சரி</button>`;
+  document.body.appendChild(t);
+  t.querySelector('#warnClose').onclick = ()=>t.remove();
+}
+function openCamera(onCapture){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ warnToast('இந்த போன்/பிரௌசரில் கேமரா கிடைக்கவில்லை'); return; }
+  navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}}, audio:false})
+    .then(stream=>showCameraOverlay(stream, onCapture))
+    .catch(err=>{
+      if(err && err.name==='NotAllowedError') warnToast('கேமரா அனுமதி தேவை. பிரௌசர் அமைப்புகளில் (Settings → Site settings → Camera) இந்த தளத்திற்கு கேமரா அனுமதி கொடுக்கவும்.');
+      else warnToast('கேமரா திறக்க முடியவில்லை');
+    });
+}
+function showCameraOverlay(stream, onCapture){
+  const div = document.createElement('div');
+  div.className = 'overlay'; div.style.zIndex = 30;
+  div.innerHTML = `
+    <button class="close" id="camClose">✕</button>
+    <video id="camVideo" autoplay playsinline muted style="width:100%;max-width:320px;border-radius:16px;background:#000"></video>
+    <button class="roundbtn" id="camShot" style="background:var(--accent);margin-top:26px">📸</button>
+    <p class="hint" style="margin-top:10px">புகைப்படம் எடுக்க, கீழே உள்ள பொத்தானை தட்டவும்</p>`;
+  document.body.appendChild(div);
+  const video = div.querySelector('#camVideo');
+  video.srcObject = stream;
+  function cleanup(){ stream.getTracks().forEach(t=>t.stop()); div.remove(); }
+  div.querySelector('#camClose').onclick = cleanup;
+  div.querySelector('#camShot').onclick = ()=>{
+    const size=260, canvas=document.createElement('canvas');
+    canvas.width=size; canvas.height=size;
+    const ctx = canvas.getContext('2d');
+    const vw=video.videoWidth||size, vh=video.videoHeight||size, s=Math.min(vw,vh);
+    ctx.drawImage(video,(vw-s)/2,(vh-s)/2,s,s,0,0,size,size);
+    const photoDataUrl = canvas.toDataURL('image/jpeg',0.75);
+    cleanup();
+    onCapture(photoDataUrl);
+  };
+}
+
+function renderHistory(){
+  $('#navHome').classList.remove('active'); $('#navHist').classList.add('active');
+  const done = entries.slice().sort((a,b)=>b.startTime-a.startTime);
+  const deleted = deletedEntries.slice().sort((a,b)=>b.startTime-a.startTime);
+  let html = '<h1>📋 வேலை பதிவுகள்</h1>';
+  html += `<div class="folderTabs">
+    <button class="folderTab ${historyMode === 'live' ? 'active' : ''}" data-folder="live">Live logs</button>
+    <button class="folderTab ${historyMode === 'deleted' ? 'active' : ''}" data-folder="deleted">Deleted logs</button>
+  </div>`;
+
+  if(historyMode === 'deleted'){
+    if(deleted.length === 0){ html += '<p class="empty">Deleted logs folder is empty</p>'; }
+    deleted.forEach(e=>{
+      html += `<div class="card" style="border:1px dashed var(--line);background:rgba(122,114,103,.04)">
+        <div class="row">
+          <img src="${e.startPhoto}">
+          <span class="arrow">→</span>
+          <img src="${e.stopPhoto}">
+          <div style="flex:1"></div>
+          <button class="iconbtn" data-restore="${e.id}" title="மீட்டமை"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 3-6.7M3 4v6h6"/></svg></button>
+        </div>
+        <div class="dur">🗂️ நீக்கப்பட்ட பதிவு</div>
+        <div class="times">⏱️ ${fmtDur(e.duration)} &nbsp; 📅 ${fmtDate(e.startTime)} ${fmtTime(e.startTime)} → ${fmtTime(e.stopTime)}</div>
+        ${e.voiceText && e.voiceText !== 'குரல் பதிவு செய்யப்பட்டது' ? `<div class="txt">🗣️ "${e.voiceText}"</div>` : (e.voiceAudio ? `<div class="txt">🗣️ குரல் பதிவு செய்யப்பட்டது</div>` : '')}
+      </div>`;
+    });
+
+    if(deleted.length>0){
+      html += `<div class="card">
+        <div class="times">🗂️ காப்பகத்தில் உள்ளது</div>
+        <div class="txt">மொத்தம் ${deleted.length} பதிவு பாதுகாப்பாக சேமிக்கப்பட்டுள்ளது.</div>
+      </div>`;
+    }
+  } else {
+    if(done.length === 0){ html += '<p class="empty">Live logs folder is empty</p>'; }
+    done.forEach(e=>{
+      html += `<div class="card">
+        <div class="row">
+          <img src="${e.startPhoto}">
+          <span class="arrow">→</span>
+          <img src="${e.stopPhoto}">
+          <div style="flex:1"></div>
+          ${e.voiceAudio?`<button class="iconbtn" data-play="${e.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 5 6 9H2v6h4l5 4z"/></svg></button>`:''}
+          <button class="iconbtn" data-del="${e.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+        </div>
+        <div class="dur">⏱️ ${fmtDur(e.duration)}</div>
+        <div class="times">📅 ${fmtDate(e.startTime)} &nbsp; ${fmtTime(e.startTime)} → ${fmtTime(e.stopTime)}</div>
+        ${e.voiceText && e.voiceText !== 'குரல் பதிவு செய்யப்பட்டது' ? `<div class="txt">🗣️ "${e.voiceText}"</div>` : (e.voiceAudio ? `<div class="txt">🗣️ குரல் பதிவு செய்யப்பட்டது — ▶️ கேளுங்கள்</div>` : '')}
+      </div>`;
+    });
+  }
+
+  app.innerHTML = html;
+
+  document.querySelectorAll('.folderTab').forEach(btn=>{
+    btn.onclick = ()=>{
+      historyMode = btn.dataset.folder;
+      renderHistory();
+    };
+  });
+
+  if(historyMode === 'deleted'){
+    deleted.forEach(e=>{
+      const restoreBtn = app.querySelector(`[data-restore="${e.id}"]`);
+      if(restoreBtn) restoreBtn.onclick = ()=>{
+        const restored = deletedEntries.find(x=>x.id===e.id);
+        if(restored){
+          entries.unshift(restored);
+          saveEntries();
+          deletedEntries = deletedEntries.filter(x=>x.id!==e.id);
+          saveDeletedEntries();
+          renderHistory();
+        }
+      };
+    });
+  } else {
+    done.forEach(e=>{
+      const playBtn = app.querySelector(`[data-play="${e.id}"]`);
+      if(playBtn) playBtn.onclick = ()=>playClip(e.voiceAudio);
+      const delBtn = app.querySelector(`[data-del="${e.id}"]`);
+      if(delBtn) delBtn.onclick = ()=>{
+        const removed = entries.find(x=>x.id===e.id);
+        if(removed){
+          deletedEntries.unshift(removed);
+          saveDeletedEntries();
+        }
+        entries = entries.filter(x=>x.id!==e.id);
+        saveEntries(); renderHistory();
+      };
+    });
+  }
+}
+
+$('#navHome').onclick = ()=>{ view='home'; render(); };
+$('#navHist').onclick = ()=>{ view='history'; render(); };
+
+render();
+</script>
+</body>
+</html>
